@@ -3,6 +3,7 @@ import algorithms
 
 app = Flask(__name__)
 
+
 def json_parse(data):
     start_inds = data['start']
     end_inds = data['end']
@@ -23,14 +24,16 @@ def json_parse(data):
     [x, y] - pair of portal indices
     -1 - forbidden point (block)
 """
+
+
 @app.route('/matrix', methods=['GET', 'POST'])
 def matrix_handler():
     if request.method == 'POST':
         data = request.get_json()
         matrix, start_inds, end_inds = json_parse(data)
         print(matrix)
-        algorithms.Astar(matrix, start_inds, end_inds)
-        return 'fuck you'
+        res_path = algorithms.Astar(matrix, start_inds, end_inds)
+        return {"result path": res_path}
 
 
 if __name__ == '__main__':

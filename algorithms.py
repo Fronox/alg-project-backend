@@ -29,8 +29,10 @@ def get_neighbours(point, matrix):
 def Astar(matrix, start, end, metric=manhattan_dist):
     curr_point = start
     visited = {(start[0], start[1]): True}
+    path = []
     while curr_point != end:
         print(f"Current point is {curr_point}")
+        path.append(curr_point)
         neighbours = get_neighbours(curr_point, matrix)
         possible_neighbours = [p for p in neighbours if (p[0], p[1]) not in visited or not visited[(p[0], p[1])]]
         candidates = []
@@ -43,11 +45,14 @@ def Astar(matrix, start, end, metric=manhattan_dist):
                 [i, j] = neighbour_val
                 g = metric(start, curr_point)
                 f = g + metric(matrix[i][j], end)
+                heapq.heappush(candidates, (f, neighbour_val))
             # Point case:
             else:
                 g = metric(start, curr_point)
                 f = (g + metric(neighbour, end)) * neighbour_val
-            heapq.heappush(candidates, (f, neighbour))
+                heapq.heappush(candidates, (f, neighbour))
             visited[(y, x)] = True
         (_, curr_point) = heapq.heappop(candidates)
+    path.append(curr_point)
     print(f"We reached the end {end}!")
+    return path
