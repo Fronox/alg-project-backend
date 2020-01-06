@@ -1,4 +1,5 @@
 from flask import Flask, request
+import algorithms
 
 app = Flask(__name__)
 
@@ -28,6 +29,7 @@ def matrix_handler():
         data = request.get_json()
         matrix, start_inds, end_inds = json_parse(data)
         print(matrix)
+        algorithms.Astar(matrix, start_inds, end_inds)
         return 'fuck you'
 
 
