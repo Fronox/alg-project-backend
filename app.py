@@ -1,7 +1,11 @@
 from flask import Flask, request
+from flask_cors import CORS, cross_origin
+
 import algorithms
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 def json_parse(data):
@@ -27,13 +31,14 @@ def json_parse(data):
 
 
 @app.route('/matrix', methods=['GET', 'POST'])
+@cross_origin()
 def matrix_handler():
     if request.method == 'POST':
         data = request.get_json()
         matrix, start_inds, end_inds = json_parse(data)
         print(matrix)
         res_path = algorithms.Astar(matrix, start_inds, end_inds)
-        return {"result path": res_path}
+        return {"path": res_path}
 
 
 if __name__ == '__main__':
