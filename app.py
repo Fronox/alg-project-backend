@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS, cross_origin
 
 import algorithms
+import time
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -28,18 +29,31 @@ def json_parse(data):
     [x, y] - pair of portal indices
     -1 - forbidden point (block)
 """
-# TODO:
-# /matrix?metric=manhattan&method=dijkstra
-# Add time benchmarking
 
 @app.route('/matrix', methods=['GET', 'POST'])
 @cross_origin()
 def matrix_handler():
     if request.method == 'POST':
         data = request.get_json()
+        alg_str, metric_str = request.args.get('alg'), request.args.get('metric')
         matrix, start_inds, end_inds = json_parse(data)
-        res_paths = algorithms.Astar(matrix, start_inds, end_inds)
-        return {"paths": res_paths}
+
+        alg, metric = None, None
+        if alg_str == 'dijkstra':
+            alg = algorithms.Dijkstra
+        if alg_str == 'astar':
+            alg = algorithms.Astar
+
+        if metric_str == 'manhattan':
+            metric = algorithms.manhattan_dist
+        if metric_str == 'euclid':
+            metric = algorithms.euclidean_dist
+
+        start = time.time()
+        (res_paths, length) = alg(matrix, start_inds, end_inds, metric)
+        end = time.time()
+        res_time = int((end - start) * 1000)
+        return {"paths": res_paths, "length": length, "time": res_time}
 
 
 if __name__ == '__main__':
