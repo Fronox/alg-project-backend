@@ -12,7 +12,7 @@ def json_parse(data):
     start_inds = data['start']
     end_inds = data['end']
     matrix = data['matrix']
-    return matrix, start_inds, end_inds
+    return matrix, tuple(start_inds), tuple(end_inds)
 
 
 """
@@ -23,12 +23,14 @@ def json_parse(data):
      
     Possible matrix values:
     1 - ordinary point
-    2 - sea point (2x slower)
-    4 - swamp point (4x slower)
+    2 - swamp point (2x slower)
+    4 - sea point (4x slower)
     [x, y] - pair of portal indices
     -1 - forbidden point (block)
 """
-
+# TODO:
+# /matrix?metric=manhattan&method=dijkstra
+# Add time benchmarking
 
 @app.route('/matrix', methods=['GET', 'POST'])
 @cross_origin()
@@ -36,9 +38,8 @@ def matrix_handler():
     if request.method == 'POST':
         data = request.get_json()
         matrix, start_inds, end_inds = json_parse(data)
-        print(matrix)
-        res_path = algorithms.Astar(matrix, start_inds, end_inds)
-        return {"path": res_path}
+        res_paths = algorithms.Astar(matrix, start_inds, end_inds)
+        return {"paths": res_paths}
 
 
 if __name__ == '__main__':
