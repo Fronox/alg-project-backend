@@ -38,16 +38,19 @@ def matrix_handler():
         alg_str, metric_str = request.args.get('alg'), request.args.get('metric')
         matrix, start_inds, end_inds = json_parse(data)
 
-        alg, metric = None, None
         if alg_str == 'dijkstra':
             alg = algorithms.Dijkstra
-        if alg_str == 'astar':
+        elif alg_str == 'astar':
             alg = algorithms.Astar
+        # elif alg_str == 'idastar':
+        #     alg = algorithms.idastar
 
         if metric_str == 'manhattan':
             metric = algorithms.manhattan_dist
-        if metric_str == 'euclid':
+        elif metric_str == 'euclid':
             metric = algorithms.euclidean_dist
+        # else:
+        #     metric = algorithms.manhattan_dist
 
         start = time.time()
         (res_paths, length) = alg(matrix, start_inds, end_inds, metric)

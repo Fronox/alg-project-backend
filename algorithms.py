@@ -25,24 +25,32 @@ def get_neighbours(point, matrix):
     return res
 
 
-def Astar(matrix, start, end, metric=manhattan_dist):
-    curr_point = start
-    visited = {start: True}
-    paths = []
-    curr_path = []
+def get_path_length(paths, metric):
     res_length = 0
+    for path in paths:
+        for i in range(1, len(path)):
+            res_length += metric(path[i - 1], path[i])
+    return res_length
+
+
+def Astar(matrix, start, end, metric):
+    curr_point = start
+    visited = set(start)
+    paths, curr_path = [], []
     portal_point = None
-    while curr_point != end:
-        if portal_point: # if chosen point is portal
+
+    while curr_point != end:  # Main cycle
+
+        if portal_point:  # if chosen point is portal
             curr_path.append(portal_point)
             paths.append(curr_path)
             curr_path = []
-        curr_path.append(curr_point)
-        neighbours = get_neighbours(curr_point, matrix)
-        possible_neighbours = [p for p in neighbours if p not in visited or not visited[p]]
+
+        neighbours = [p for p in get_neighbours(curr_point, matrix) if p not in visited]
+
         candidates = []
         heapq.heapify(candidates)  # Candidates stored in min-heap
-        for neighbour in possible_neighbours:
+        for neighbour in neighbours:
             (y, x) = neighbour
             neighbour_val = matrix[y][x]
             # Portal case:
@@ -56,24 +64,26 @@ def Astar(matrix, start, end, metric=manhattan_dist):
                 g = metric(start, curr_point)
                 f = (g + metric(neighbour, end)) * neighbour_val
                 heapq.heappush(candidates, (f, neighbour, None))
-            visited[neighbour] = True
+            visited.add(neighbour)
         (_, new_point, portal_point) = heapq.heappop(candidates)
-        res_length += metric(curr_point, new_point)
+        curr_path.append(curr_point)
         curr_point = new_point
+
     curr_path.append(curr_point)
     paths.append(curr_path)
-    return (paths, res_length)
+    res_length = get_path_length(paths, metric)
+    return paths, res_length
+
 
 def Dijkstra(matrix, start, end, metric=manhattan_dist):
     distances = {start: 0}
-    visited = {}
+    visited = set()
     prev = {}
 
     while len(visited) < len(distances):
         unvisited_points = list(filter(lambda x: x[0] not in visited, distances.items()))
         (curr_node, curr_node_dist) = min(unvisited_points, key=lambda x: x[1])
         neighbours = get_neighbours(curr_node, matrix)
-        print(neighbours)
         for neighbour in neighbours:
             (y, x) = neighbour
             neighbour_val = matrix[y][x]
@@ -81,7 +91,8 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
             # Portal case:
             if isinstance(neighbour_val, list):
                 neighbour_tuple = tuple(neighbour_val)
-                if ((neighbour_tuple not in distances) or neighbour_tuple in distances and alt_dist < distances[neighbour_tuple]) \
+                if ((neighbour_tuple not in distances) or neighbour_tuple in distances and alt_dist < distances[
+                    neighbour_tuple]) \
                         or ((neighbour not in distances) or neighbour in distances and alt_dist < distances[neighbour]):
                     distances[neighbour_tuple] = alt_dist
                     distances[neighbour] = alt_dist
@@ -89,10 +100,11 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
                     prev[neighbour] = (curr_node, neighbour_tuple, alt_dist)
             # Point case:
             else:
+                alt_dist *= neighbour_val
                 if (neighbour not in distances) or neighbour in distances and alt_dist < distances[neighbour]:
                     distances[neighbour] = alt_dist
                     prev[neighbour] = (curr_node, None, alt_dist)
-        visited[curr_node] = True
+        visited.add(curr_node)
 
     paths = []
     curr_path = [end]
@@ -100,7 +112,6 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
     path_dist = distances[end]
     prev_portal = False
     while curr_node != start:
-        print(curr_node)
         (prev_node, portal_node, dist) = prev[curr_node]
         if portal_node and not prev_portal:
             paths.append(curr_path)
@@ -115,3 +126,53 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
     paths.append(curr_path)
     paths.reverse()
     return paths, path_dist
+
+#
+# def idastar(matrix, start, end, metric=manhattan_dist):
+#     def search(curr_point, g, bound, curr_path=[], paths=[]):
+#         print(curr_point)
+#         visited.add(curr_point)
+#         (y, x) = curr_point
+#         point_val = matrix[y][x]
+#         # Portal case:
+#         curr_path = curr_path + [curr_point]
+#         if curr_point == end:
+#             paths.append(curr_path)
+#             return True, paths
+#
+#         if isinstance(point_val, list):
+#             [i, j] = point_val
+#             f = g + metric(matrix[i][j], end)
+#             curr_point = matrix[i][j]
+#             paths.append(curr_path)
+#             curr_path = []
+#         # Point case:
+#         else:
+#             f = (g + metric(curr_point, end)) * point_val
+#
+#         if f > bound:
+#             return f, paths
+#         possible_neighbours = [p for p in get_neighbours(curr_point, matrix) if p not in visited]
+#         min_val = 10 ** 100
+#         new_paths = paths
+#         for neighbour in possible_neighbours:
+#             t, new_paths_iter = search(neighbour, g + metric(start, curr_point), bound, curr_path, paths)
+#             if t == True:
+#                 return t, new_paths_iter
+#             if t < min_val:
+#                 min_val = t
+#                 new_paths = new_paths_iter
+#         return min_val, new_paths
+#
+#     visited = set()
+#     bound = metric(start, end)
+#     while True:
+#         (t, paths) = search(start, 0, bound)
+#         print(f"Paths: {paths}")
+#         print(f"t = {t}")
+#         if t == True:
+#             length = get_path_length(paths, metric)
+#             return paths, length
+#         if t == 10 ** 100:
+#             return None, None
+#         bound = t
