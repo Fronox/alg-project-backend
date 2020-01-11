@@ -41,16 +41,14 @@ def matrix_handler():
         if alg_str == 'dijkstra':
             alg = algorithms.Dijkstra
         elif alg_str == 'astar':
-            alg = algorithms.Astar
-        # elif alg_str == 'idastar':
-        #     alg = algorithms.idastar
+            alg = algorithms.astar
+        elif alg_str == 'bf':
+            alg = algorithms.best_first
 
         if metric_str == 'manhattan':
             metric = algorithms.manhattan_dist
         elif metric_str == 'euclid':
             metric = algorithms.euclidean_dist
-        # else:
-        #     metric = algorithms.manhattan_dist
 
         start = time.time()
         (res_paths, length) = alg(matrix, start_inds, end_inds, metric)

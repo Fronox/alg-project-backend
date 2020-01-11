@@ -33,46 +33,71 @@ def get_path_length(paths, metric):
     return res_length
 
 
-def Astar(matrix, start, end, metric):
-    curr_point = start
+def astar(matrix, start, end, metric):
     visited = set(start)
-    paths, curr_path = [], []
-    portal_point = None
-
-    while curr_point != end:  # Main cycle
-
-        if portal_point:  # if chosen point is portal
-            curr_path.append(portal_point)
-            paths.append(curr_path)
-            curr_path = []
+    candidates = []
+    heapq.heapify(candidates)
+    heapq.heappush(candidates, (metric(start, end), (0, [[start]])))
+    while len(candidates) > 0:
+        f_prev, (g_prev, curr_path) = heapq.heappop(candidates)
+        curr_point = curr_path[-1][-1]
+        if curr_point in visited:
+            continue
+        if curr_point == end:
+            return curr_path, get_path_length(curr_path, metric)
+        visited.add(curr_point)
 
         neighbours = [p for p in get_neighbours(curr_point, matrix) if p not in visited]
-
-        candidates = []
-        heapq.heapify(candidates)  # Candidates stored in min-heap
         for neighbour in neighbours:
             (y, x) = neighbour
             neighbour_val = matrix[y][x]
+            g = g_prev + metric(curr_point, neighbour)
+            new_path = [row[:] for row in curr_path]
+            new_path[-1].append(neighbour)
             # Portal case:
             if isinstance(neighbour_val, list):
                 [i, j] = neighbour_val
-                g = metric(start, curr_point)
                 f = g + metric(matrix[i][j], end)
-                heapq.heappush(candidates, (f, tuple(neighbour_val), neighbour))
+                new_path.append([(i, j)])
+                heapq.heappush(candidates, (f, (g, new_path)))
             # Point case:
             else:
-                g = metric(start, curr_point)
                 f = (g + metric(neighbour, end)) * neighbour_val
-                heapq.heappush(candidates, (f, neighbour, None))
-            visited.add(neighbour)
-        (_, new_point, portal_point) = heapq.heappop(candidates)
-        curr_path.append(curr_point)
-        curr_point = new_point
+                heapq.heappush(candidates, (f, (g, new_path)))
+    return None, None
 
-    curr_path.append(curr_point)
-    paths.append(curr_path)
-    res_length = get_path_length(paths, metric)
-    return paths, res_length
+def best_first(matrix, start, end, metric):
+    visited = set(start)
+    candidates = []
+    heapq.heapify(candidates)
+    heapq.heappush(candidates, (metric(start, end), [[start]]))
+    while len(candidates) > 0:
+        f_prev, curr_path = heapq.heappop(candidates)
+        curr_point = curr_path[-1][-1]
+        if curr_point in visited:
+            continue
+        if curr_point == end:
+            return curr_path, get_path_length(curr_path, metric)
+        visited.add(curr_point)
+
+        neighbours = [p for p in get_neighbours(curr_point, matrix) if p not in visited]
+        for neighbour in neighbours:
+            (y, x) = neighbour
+            neighbour_val = matrix[y][x]
+            new_path = [row[:] for row in curr_path]
+            new_path[-1].append(neighbour)
+            # Portal case:
+            if isinstance(neighbour_val, list):
+                [i, j] = neighbour_val
+                f = metric(matrix[i][j], end)
+                new_path.append([(i, j)])
+                heapq.heappush(candidates, (f, new_path))
+            # Point case:
+            else:
+                f = metric(neighbour, end) * neighbour_val
+                heapq.heappush(candidates, (f, new_path))
+    return None, None
+
 
 
 def Dijkstra(matrix, start, end, metric=manhattan_dist):
@@ -176,3 +201,89 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
 #         if t == 10 ** 100:
 #             return None, None
 #         bound = t
+
+
+# def best_first(matrix, start, end, metric):
+#     curr_point = start
+#     visited = set(start)
+#     paths, curr_path = [], []
+#     portal_point = None
+#
+#     while curr_point != end:  # Main cycle
+#
+#         if portal_point:  # if chosen point is portal
+#             curr_path.append(portal_point)
+#             paths.append(curr_path)
+#             curr_path = []
+#
+#         neighbours = [p for p in get_neighbours(curr_point, matrix) if p not in visited]
+#
+#         candidates = []
+#         heapq.heapify(candidates)  # Candidates stored in min-heap
+#         for neighbour in neighbours:
+#             (y, x) = neighbour
+#             neighbour_val = matrix[y][x]
+#             # Portal case:
+#             if isinstance(neighbour_val, list):
+#                 [i, j] = neighbour_val
+#                 f = metric(matrix[i][j], end)
+#                 heapq.heappush(candidates, (f, tuple(neighbour_val), neighbour))
+#             # Point case:
+#             else:
+#                 f = metric(neighbour, end) * neighbour_val
+#                 heapq.heappush(candidates, (f, neighbour, None))
+#             visited.add(neighbour)
+#         (_, new_point, portal_point) = heapq.heappop(candidates)
+#         curr_path.append(curr_point)
+#         curr_point = new_point
+#
+#     curr_path.append(curr_point)
+#     paths.append(curr_path)
+#     res_length = get_path_length(paths, metric)
+#     return paths, res_length
+
+
+
+# def Astar(matrix, start, end, metric):
+#     curr_point = start
+#     visited = set(start)
+#     paths, curr_path = [], []
+#     portal_point = None
+#     g = 0
+#     prev_point = start
+#
+#     while curr_point != end:  # Main cycle
+#
+#         if portal_point:  # if chosen point is portal
+#             curr_path.append(portal_point)
+#             paths.append(curr_path)
+#             curr_path = []
+#
+#         neighbours = [p for p in get_neighbours(curr_point, matrix) if p not in visited]
+#
+#         candidates = []
+#         heapq.heapify(candidates)  # Candidates stored in min-heap
+#         for neighbour in neighbours:
+#             (y, x) = neighbour
+#             neighbour_val = matrix[y][x]
+#             # Portal case:
+#             if isinstance(neighbour_val, list):
+#                 [i, j] = neighbour_val
+#                 g += metric(prev_point, curr_point)
+#                 f = g + metric(matrix[i][j], end)
+#                 heapq.heappush(candidates, (f, tuple(neighbour_val), neighbour))
+#             # Point case:
+#             else:
+#                 g = metric(start, curr_point)
+#                 f = (g + metric(neighbour, end)) * neighbour_val
+#                 heapq.heappush(candidates, (f, neighbour, None))
+#             visited.add(neighbour)
+#         (_, new_point, portal_point) = heapq.heappop(candidates)
+#         curr_path.append(curr_point)
+#         prev_point = curr_point
+#         curr_point = new_point
+#
+#     curr_path.append(curr_point)
+#     paths.append(curr_path)
+#     res_length = get_path_length(paths, metric)
+#     return paths, res_length
