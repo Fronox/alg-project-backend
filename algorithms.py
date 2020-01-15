@@ -41,9 +41,12 @@ def astar(matrix, start, end, metric):
     while len(candidates) > 0:
         f_prev, (g_prev, curr_path) = heapq.heappop(candidates)
         curr_point = curr_path[-1][-1]
+        # print(f'Curr point{curr_point}')
+        # print(f'f curr = {f_prev}')
         if curr_point in visited:
             continue
         if curr_point == end:
+            print(curr_path)
             return curr_path, get_path_length(curr_path, metric)
         visited.add(curr_point)
 
@@ -57,7 +60,12 @@ def astar(matrix, start, end, metric):
             # Portal case:
             if isinstance(neighbour_val, list):
                 [i, j] = neighbour_val
-                f = g + metric(matrix[i][j], end)
+                print(f'Start {start}, end {end}')
+                print(f"Portal from {neighbour} to {[i, j]}")
+                f = g + metric([i, j], end)
+                print(f'portal f = {f}')
+                print(f'portal g = {g}')
+                print(f'portal metric = {metric([i, j], end)}')
                 new_path.append([(i, j)])
                 heapq.heappush(candidates, (f, (g, new_path)))
             # Point case:
@@ -89,7 +97,7 @@ def best_first(matrix, start, end, metric):
             # Portal case:
             if isinstance(neighbour_val, list):
                 [i, j] = neighbour_val
-                f = metric(matrix[i][j], end)
+                f = metric((i, j), end)
                 new_path.append([(i, j)])
                 heapq.heappush(candidates, (f, new_path))
             # Point case:
@@ -104,11 +112,17 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
     distances = {start: 0}
     visited = set()
     prev = {}
+    candidates = []
+    heapq.heapify(candidates)
+    heapq.heappush(candidates, (0, start))
 
-    while len(visited) < len(distances):
-        unvisited_points = list(filter(lambda x: x[0] not in visited, distances.items()))
-        (curr_node, curr_node_dist) = min(unvisited_points, key=lambda x: x[1])
+    while end not in distances: #len(visited) < len(distances):
+        (curr_node_dist, curr_node) = heapq.heappop(candidates)
+        print(curr_node)
+        if curr_node in visited:
+            continue
         neighbours = get_neighbours(curr_node, matrix)
+        visited.add(curr_node)
         for neighbour in neighbours:
             (y, x) = neighbour
             neighbour_val = matrix[y][x]
@@ -123,14 +137,15 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
                     distances[neighbour] = alt_dist
                     prev[neighbour_tuple] = (curr_node, neighbour, alt_dist)
                     prev[neighbour] = (curr_node, neighbour_tuple, alt_dist)
+                #heapq.heappush(candidates, (alt_dist, neighbour))
+                heapq.heappush(candidates, (distances[neighbour_tuple], neighbour_tuple))
             # Point case:
             else:
                 alt_dist *= neighbour_val
                 if (neighbour not in distances) or neighbour in distances and alt_dist < distances[neighbour]:
                     distances[neighbour] = alt_dist
                     prev[neighbour] = (curr_node, None, alt_dist)
-        visited.add(curr_node)
-
+                heapq.heappush(candidates, (distances[neighbour], neighbour))
     paths = []
     curr_path = [end]
     curr_node = end
@@ -150,6 +165,8 @@ def Dijkstra(matrix, start, end, metric=manhattan_dist):
         curr_node = prev_node
     paths.append(curr_path)
     paths.reverse()
+    for path in paths:
+        path.reverse()
     return paths, path_dist
 
 #

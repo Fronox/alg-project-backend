@@ -26,7 +26,7 @@ def json_parse(data):
     1 - ordinary point
     2 - swamp point (2x slower)
     4 - sea point (4x slower)
-    [x, y] - pair of portal indices
+    [y, x] - pair of portal indices
     -1 - forbidden point (block)
 """
 
@@ -37,6 +37,10 @@ def matrix_handler():
         data = request.get_json()
         alg_str, metric_str = request.args.get('alg'), request.args.get('metric')
         matrix, start_inds, end_inds = json_parse(data)
+
+        # with open("mat.txt", "w+") as out:
+        #     for row in matrix:
+        #         out.write(f"{row}\n")
 
         if alg_str == 'dijkstra':
             alg = algorithms.Dijkstra
@@ -53,8 +57,14 @@ def matrix_handler():
         start = time.time()
         (res_paths, length) = alg(matrix, start_inds, end_inds, metric)
         end = time.time()
+
+        final_path = []
+        for row in res_paths:
+            path = [(x, y) for y, x in row]
+            final_path.append(path)
+        print(final_path)
         res_time = int((end - start) * 1000)
-        return {"paths": res_paths, "length": length, "time": res_time}
+        return {"paths": final_path, "length": length, "time": res_time}
 
 
 if __name__ == '__main__':
