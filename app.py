@@ -58,7 +58,6 @@ def matrix_handler():
         for row in res_paths:
             path = [(x, y) for y, x in row]
             final_path.append(path)
-        print(final_path)
         res_time = int((end - start) * 1000)
         return {"paths": final_path, "length": length, "time": res_time}
 
