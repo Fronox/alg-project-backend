@@ -38,10 +38,6 @@ def matrix_handler():
         alg_str, metric_str = request.args.get('alg'), request.args.get('metric')
         matrix, start_inds, end_inds = json_parse(data)
 
-        # with open("mat.txt", "w+") as out:
-        #     for row in matrix:
-        #         out.write(f"{row}\n")
-
         if alg_str == 'dijkstra':
             alg = algorithms.Dijkstra
         elif alg_str == 'astar':
